@@ -10,14 +10,62 @@ releases:
     chart: gatus/gatus
     version: 2.5.0
     values:
+      - ingress:
+          enabled: true
+          annotations: 
+            kubernetes.io/ingress.class: "nginx"
+          path: /
+          pathType: Prefix
+          hosts: gatus.life  
       - persistence:
           enabled: true
       - config:
-          storage:
-            type: sqlite
-            path: /data/data.db
+#          storage:
+#            type: sqlite
+#            path: /data/data.db
           endpoints:
-            - name: Example
-              url: https://example.com
+            - name: front-end
+              group: core
+              url: "https://example.com"
+              interval: 5m
               conditions:
-                - '[STATUS] == 200'
+                - "[STATUS] == 200"
+#                - "[BODY].status == UP"
+                - "[RESPONSE_TIME] < 15000"
+                - "[CERTIFICATE_EXPIRATION] > 72h"                
+            - name: dns-query
+              url: "8.8.8.8" # Address of the DNS server to use
+              interval: 5m
+              dns:
+                query-name: "example.com"
+                query-type: "A"
+              conditions:
+                - "[BODY] == 93.184.216.34"
+                - "[DNS_RCODE] == NOERROR"
+            - name: icmp-ping
+              url: "icmp://8.8.8.8"
+              interval: 1m
+              conditions:
+                - "[CONNECTED] == true"
+            - name: mail
+              url: "tcp://gmail.com:25"
+              interval: 1m
+              conditions:
+                - "[CONNECTED] == true"
+          alerting:
+            telegram:
+              token: ""
+              id: ""
+            alerts:
+              - type: telegram
+                enabled: true
+                failure-threshold: 3
+                send-on-resolved: true
+              - type: telegram
+                enabled: true
+                failure-threshold: 6
+                send-on-resolved: true
+              - type: telegram
+                enabled: true
+                failure-threshold: 9
+                send-on-resolved: true
