@@ -1,0 +1,22 @@
+---
+repositories:
+  - name: gatus
+    url: https://avakarev.github.io/gatus-chart
+
+releases:
+  - name: gatus
+    namespace: gatus
+    chart: gatus/gatus
+    version: 2.5.0
+    values:
+      - persistence:
+          enabled: true
+      - config:
+          storage:
+            type: sqlite
+            path: /data/data.db
+          endpoints:
+            - name: Example
+              url: https://example.com
+              conditions:
+                - '[STATUS] == 200'
